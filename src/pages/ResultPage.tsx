@@ -4,7 +4,8 @@ import type { CategoryStat, QuizResult } from '../features/result'
 import type { QuizSession } from '../features/quiz'
 import { logEvent, EVENTS } from '../features/analytics'
 import { mockPack } from '../features/content'
-import { saveRecord } from '../features/history'
+import { saveRecord, loadHistory } from '../features/history'
+import { tryRequestReview } from '../features/review/reviewPrompt'
 import './ResultPage.css'
 
 interface Props {
@@ -58,6 +59,7 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
       resultType:   result.resultType.id,
       packId:       mockPack.packId,
     })
+    tryRequestReview(loadHistory())
   }, [result])
 
   if (!result) {
