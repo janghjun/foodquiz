@@ -1,0 +1,128 @@
+.home-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 52px 24px 36px;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.home-screen--center {
+  justify-content: center;
+  gap: 20px;
+}
+
+/* 시즌 배지 */
+.home-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 100px;
+  background: #EFF6FF;
+  color: #3182F6;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 28px;
+}
+
+/* 타이틀 */
+.home-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #191F28;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+
+/* 설명 */
+.home-desc {
+  font-size: 16px;
+  color: #333D4B;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+/* 보조 카피 */
+.home-meta {
+  font-size: 14px;
+  color: #8B95A1;
+  margin-bottom: 36px;
+}
+
+/* 예시 문제 카드 */
+.home-example-card {
+  width: 100%;
+  background: #F9FAFB;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.home-example-label {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8B95A1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.home-example-prompt {
+  font-size: 15px;
+  font-weight: 600;
+  color: #191F28;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.home-example-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.home-example-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  background: #fff;
+  border: 1.5px solid #E5E8EB;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #4E5968;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* CTA */
+.home-cta {
+  width: 100%;
+  padding: 16px;
+  background: #3182F6;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+.home-cta:active {
+  background: #1B64DA;
+}
+
+/* 상태 텍스트 */
+.home-status-dim {
+  font-size: 16px;
+  color: #8B95A1;
+}
+
+.home-status-body {
+  font-size: 16px;
+  color: #333D4B;
+}

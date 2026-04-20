@@ -1,0 +1,18 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { height: 100%; }
+
+body {
+  font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  background: #F2F4F6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+}
+
+#root { min-height: 100dvh; }
+
+button { font-family: inherit; }

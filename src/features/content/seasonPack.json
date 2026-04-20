@@ -1,0 +1,75 @@
+{
+  "packId": "season-2026-spring",
+  "title": "2026 봄 시즌팩",
+  "meta": {
+    "packId": "season-2026-spring",
+    "title": "2026 봄 시즌팩",
+    "subtitle": "2020년대 최신 트렌드",
+    "isSeasonal": true,
+    "startsAt": "2026-03-01",
+    "endsAt": "2026-05-31",
+    "categories": ["dessert_trend", "snack_recall"],
+    "status": "active"
+  },
+  "questions": [
+    {
+      "id": "qs01",
+      "format": "menu_to_year",
+      "category": "snack_recall",
+      "difficulty": "easy",
+      "prompt": "탕후루가 전국 상권을 뒤덮으며 가장 크게 유행한 해는?",
+      "menu": "탕후루",
+      "choices": ["2021년", "2022년", "2023년", "2024년"],
+      "answer": "2023년",
+      "explanation": "탕후루는 2023년 전국 상권에 전문점이 급증하며 그해 최고의 간식 트렌드로 꼽혔어요.",
+      "evidenceLevel": "A"
+    },
+    {
+      "id": "qs02",
+      "format": "menu_to_year",
+      "category": "dessert_trend",
+      "difficulty": "easy",
+      "prompt": "피스타치오 크림과 카다이프 면이 들어간 두바이 초콜릿이 국내에서 유행한 해는?",
+      "menu": "두바이 초콜릿",
+      "choices": ["2022년", "2023년", "2024년", "2025년"],
+      "answer": "2024년",
+      "explanation": "두바이 초콜릿은 2024년 SNS를 타고 국내에 퍼지며 편의점·카페가 앞다퉈 한정판을 출시했어요.",
+      "evidenceLevel": "A"
+    },
+    {
+      "id": "qs03",
+      "format": "ox",
+      "category": "snack_recall",
+      "difficulty": "medium",
+      "prompt": "2022~2023년 약과 열풍은 전통 제과점보다 편의점·카페가 주도했다",
+      "choices": ["O", "X"],
+      "answer": "O",
+      "explanation": "약과 열풍은 편의점 컵약과와 카페 약과 라떼가 촉발한 MZ세대 전통 간식 재발견 트렌드였어요.",
+      "evidenceLevel": "A"
+    },
+    {
+      "id": "qs04",
+      "format": "menu_to_year",
+      "category": "dessert_trend",
+      "difficulty": "medium",
+      "prompt": "크루아상 반죽을 와플 팬에 구운 크로플이 홈카페 열풍과 함께 유행한 시기는?",
+      "menu": "크로플",
+      "choices": ["2019년", "2020년", "2021년", "2022년"],
+      "answer": "2021년",
+      "explanation": "크로플은 2021년 코로나 홈카페 문화가 절정이던 시기에 크루아상 반죽 와플 디저트로 각광받았어요.",
+      "evidenceLevel": "A"
+    },
+    {
+      "id": "qs05",
+      "format": "year_to_menu",
+      "category": "dessert_trend",
+      "difficulty": "medium",
+      "prompt": "2024년 편의점 협업 디저트 재료로 가장 많이 등장한 것은?",
+      "year": 2024,
+      "choices": ["말차", "피스타치오", "흑임자", "레몬커드"],
+      "answer": "피스타치오",
+      "explanation": "2024년 두바이 초콜릿 열풍을 타고 피스타치오가 편의점·카페 협업 디저트 재료로 가장 활발히 쓰였어요.",
+      "evidenceLevel": "B"
+    }
+  ]
+}

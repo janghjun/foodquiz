@@ -1,0 +1,243 @@
+/* ── 레이아웃 ─────────────────────────────── */
+
+.quiz-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 100dvh;
+  padding: 24px 24px 36px;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.quiz-screen--center {
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.quiz-status-text {
+  font-size: 16px;
+  color: #8B95A1;
+}
+
+/* ── 진행률 ──────────────────────────────── */
+
+.quiz-progress {
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.quiz-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #E5E8EB;
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.quiz-progress-fill {
+  height: 100%;
+  background: #3182F6;
+  border-radius: 100px;
+  transition: width 0.25s ease;
+}
+
+.quiz-progress-label {
+  font-size: 13px;
+  color: #8B95A1;
+  font-weight: 500;
+}
+
+/* ── 문제 타입 배지 ───────────────────────── */
+
+.quiz-format-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: #F2F4F6;
+  color: #4E5968;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* ── 이미지 ──────────────────────────────── */
+
+.quiz-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: #F2F4F6;
+}
+
+.quiz-image-placeholder {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(145deg, #F9FAFB, #F2F4F6);
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+
+.quiz-image-placeholder-icon {
+  width: 32px;
+  height: 32px;
+  color: #C4C9CF;
+}
+
+.quiz-image-placeholder-label {
+  font-size: 12px;
+  color: #B0B8C1;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ── 문제 텍스트 ─────────────────────────── */
+
+.quiz-prompt {
+  font-size: 18px;
+  font-weight: 700;
+  color: #191F28;
+  line-height: 1.55;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+/* ── 보기 — 일반 2×2 ─────────────────────── */
+
+.quiz-choices {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quiz-choice {
+  padding: 14px 10px;
+  border: 1.5px solid #E5E8EB;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  color: #191F28;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.4;
+  font-family: inherit;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.quiz-choice:disabled {
+  cursor: default;
+}
+
+/* 보기 상태별 */
+
+.quiz-choice--correct {
+  border-color: #00C471;
+  background: #F0FDF4;
+  color: #00A35A;
+  font-weight: 700;
+}
+
+.quiz-choice--wrong {
+  border-color: #E03131;
+  background: #FFF5F5;
+  color: #E03131;
+  font-weight: 700;
+}
+
+/* 오답 시 정답 표시 */
+.quiz-choice--correct-answer {
+  border-color: #00C471;
+  background: #F0FDF4;
+  color: #00A35A;
+  font-weight: 600;
+}
+
+.quiz-choice--dim {
+  opacity: 0.4;
+}
+
+/* ── 보기 — O/X ──────────────────────────── */
+
+.quiz-choices--ox {
+  width: 100%;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.quiz-choice--ox-item {
+  flex: 1;
+  padding: 32px 0;
+  font-size: 28px;
+  font-weight: 800;
+  border-radius: 14px;
+  letter-spacing: 0;
+}
+
+/* ── 피드백 카드 ─────────────────────────── */
+
+.quiz-feedback {
+  width: 100%;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.quiz-feedback--correct {
+  background: #F0FDF4;
+  border-left: 4px solid #00C471;
+}
+
+.quiz-feedback--wrong {
+  background: #FFF5F5;
+  border-left: 4px solid #E03131;
+}
+
+.quiz-feedback-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.quiz-feedback--correct .quiz-feedback-title { color: #00A35A; }
+.quiz-feedback--wrong  .quiz-feedback-title { color: #E03131; }
+
+.quiz-feedback-explanation {
+  font-size: 14px;
+  color: #333D4B;
+  line-height: 1.6;
+}
+
+/* ── CTA 버튼 ────────────────────────────── */
+
+.quiz-cta-btn {
+  width: 100%;
+  padding: 16px;
+  background: #3182F6;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: auto;
+  font-family: inherit;
+}
+
+.quiz-cta-btn:active {
+  background: #1B64DA;
+}

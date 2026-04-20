@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EFF6FF"/>
+      <stop offset="100%" stop-color="#DBEAFE"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="220" fill="url(#bg)" rx="14"/>
+  <path d="M168 96a8 8 0 0 0-8 8v36a8 8 0 0 0 8 8h64a8 8 0 0 0 8-8v-36a8 8 0 0 0-8-8h-16l-8-12h-16l-8 12z"
+        stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="200" cy="118" r="10" stroke="#60A5FA" stroke-width="1.8" fill="none"/>
+  <text x="200" y="162" text-anchor="middle" fill="#60A5FA"
+        font-size="12" font-family="-apple-system, sans-serif" font-weight="500">이미지 준비 중</text>
+</svg>
