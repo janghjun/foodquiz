@@ -1,3 +1,17 @@
+/* ── 오답 복습 라벨 ──────────────────────── */
+
+.quiz-review-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: #FFF5F5;
+  color: #E03131;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
 /* ── 레이아웃 ─────────────────────────────── */
 
 .quiz-screen {

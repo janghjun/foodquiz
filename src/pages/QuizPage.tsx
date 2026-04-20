@@ -15,6 +15,8 @@ import './QuizPage.css'
 
 interface Props {
   onFinish: (session: QuizSession) => void
+  initialSession?: QuizSession
+  reviewLabel?: string
 }
 
 type Status = 'loading' | 'ready' | 'error'
@@ -77,7 +79,7 @@ function QuizImageBlock({ questionId, category }: { questionId: string; category
   )
 }
 
-export default function QuizPage({ onFinish }: Props) {
+export default function QuizPage({ onFinish, initialSession, reviewLabel }: Props) {
   const [status, setStatus] = useState<Status>('loading')
   const [session, setSession] = useState<QuizSession | null>(null)
   const [loadKey, setLoadKey] = useState(0)
@@ -85,6 +87,11 @@ export default function QuizPage({ onFinish }: Props) {
 
   useEffect(() => {
     try {
+      if (initialSession) {
+        setSession(initialSession)
+        setStatus('ready')
+        return
+      }
       if (mockPack.questions.length === 0) throw new Error('empty')
       setSession(createQuizSession(mockPack.questions))
       setStatus('ready')
@@ -150,6 +157,11 @@ export default function QuizPage({ onFinish }: Props) {
 
   return (
     <main className="quiz-screen">
+      {/* 오답 복습 라벨 */}
+      {reviewLabel && (
+        <span className="quiz-review-label">{reviewLabel}</span>
+      )}
+
       {/* 진행률 */}
       <div className="quiz-progress">
         <div className="quiz-progress-bar">

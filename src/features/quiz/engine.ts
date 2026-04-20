@@ -1,4 +1,4 @@
-import type { Question, QuizSession } from './types'
+import type { Question, QuestionCategory, QuizSession } from './types'
 
 const SESSION_SIZE = 10
 
@@ -55,4 +55,41 @@ export function isCorrect(session: QuizSession, questionId: string): boolean | n
   const question = session.questions.find((q) => q.id === questionId)
   if (question === undefined) return null
   return question.answer === submitted
+}
+
+export interface ReviewSessionOptions {
+  category?: QuestionCategory  // future: category filter
+}
+
+/**
+ * 완료된 세션에서 오답만 추출해 재도전 세션 생성.
+ * 오답이 없으면 null 반환.
+ */
+export function createReviewSession(
+  completed: QuizSession,
+  options: ReviewSessionOptions = {},
+): QuizSession | null {
+  let wrongs = completed.questions.filter(
+    (q) => completed.answers[q.id] !== undefined && completed.answers[q.id] !== q.answer,
+  )
+
+  if (options.category) {
+    wrongs = wrongs.filter((q) => q.category === options.category)
+  }
+
+  if (wrongs.length === 0) return null
+
+  const shuffled = [...wrongs]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+
+  return {
+    questions: shuffled,
+    currentIndex: 0,
+    answers: {},
+    startedAt: new Date(),
+    completedAt: null,
+  }
 }

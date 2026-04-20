@@ -265,3 +265,11 @@
 .result-cta-btn--secondary:active {
   background: #F8F9FA;
 }
+
+.result-cta-btn--review {
+  background: #E03131;
+}
+
+.result-cta-btn--review:active {
+  background: #C92A2A;
+}

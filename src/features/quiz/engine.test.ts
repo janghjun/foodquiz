@@ -6,6 +6,7 @@ import {
   goNext,
   isCompleted,
   isCorrect,
+  createReviewSession,
 } from './engine'
 import type { Question } from './types'
 
@@ -178,5 +179,75 @@ describe('isCorrect', () => {
   it('존재하지 않는 questionId는 null을 반환한다', () => {
     const session = createQuizSession(questions)
     expect(isCorrect(session, 'nonexistent')).toBeNull()
+  })
+})
+
+// ── createReviewSession ───────────────────────────────────────
+describe('createReviewSession', () => {
+  function makeCompletedWithMix(): ReturnType<typeof createQuizSession> {
+    // q1~q4 로 구성된 세션: 짝수 index → 정답 'O', 홀수 → 정답 'X'
+    const qs = [
+      makeQuestion('q1', 'O'),
+      makeQuestion('q2', 'X'),
+      makeQuestion('q3', 'O'),
+      makeQuestion('q4', 'X'),
+    ]
+    let s = { questions: qs, currentIndex: 0, answers: {} as Record<string, string>, startedAt: new Date(), completedAt: null as Date | null }
+    // q1 정답, q2 오답, q3 오답, q4 정답
+    s = submitAnswer(s, 'O')  // q1 correct
+    s = goNext(s)
+    s = submitAnswer(s, 'O')  // q2 wrong (answer is X)
+    s = goNext(s)
+    s = submitAnswer(s, 'X')  // q3 wrong (answer is O)
+    s = goNext(s)
+    s = submitAnswer(s, 'X')  // q4 correct
+    s = goNext(s)
+    return s
+  }
+
+  it('오답 문항만 포함한 세션을 생성한다', () => {
+    const completed = makeCompletedWithMix()
+    const review = createReviewSession(completed)
+    expect(review).not.toBeNull()
+    expect(review!.questions).toHaveLength(2)
+    const ids = review!.questions.map((q) => q.id)
+    expect(ids).toContain('q2')
+    expect(ids).toContain('q3')
+  })
+
+  it('재도전 세션은 answers가 비어있다', () => {
+    const completed = makeCompletedWithMix()
+    const review = createReviewSession(completed)
+    expect(review!.answers).toEqual({})
+    expect(review!.completedAt).toBeNull()
+  })
+
+  it('오답이 없으면 null을 반환한다', () => {
+    const qs = [makeQuestion('q1', 'O'), makeQuestion('q2', 'X')]
+    let s = { questions: qs, currentIndex: 0, answers: {} as Record<string, string>, startedAt: new Date(), completedAt: null as Date | null }
+    s = submitAnswer(s, 'O'); s = goNext(s)
+    s = submitAnswer(s, 'X'); s = goNext(s)
+    expect(createReviewSession(s)).toBeNull()
+  })
+
+  it('category 옵션으로 필터링된 세션을 생성한다', () => {
+    const qs: Question[] = [
+      { ...makeQuestion('q1', 'O'), category: 'snack_recall' },
+      { ...makeQuestion('q2', 'O'), category: 'dessert_trend' },
+    ]
+    let s = { questions: qs, currentIndex: 0, answers: {} as Record<string, string>, startedAt: new Date(), completedAt: null as Date | null }
+    s = submitAnswer(s, 'X'); s = goNext(s)  // q1 wrong
+    s = submitAnswer(s, 'X'); s = goNext(s)  // q2 wrong
+    const review = createReviewSession(s, { category: 'snack_recall' })
+    expect(review!.questions).toHaveLength(1)
+    expect(review!.questions[0].id).toBe('q1')
+  })
+
+  it('원본 세션을 변경하지 않는다', () => {
+    const completed = makeCompletedWithMix()
+    const originalAnswers = { ...completed.answers }
+    createReviewSession(completed)
+    expect(completed.answers).toEqual(originalAnswers)
+    expect(completed.questions).toHaveLength(4)
   })
 })

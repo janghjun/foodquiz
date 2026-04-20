@@ -10,6 +10,7 @@ import './ResultPage.css'
 interface Props {
   session: QuizSession
   onRestart: () => void
+  onStartReview?: () => void
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -37,7 +38,7 @@ function safeCalc(session: QuizSession): QuizResult | null {
   }
 }
 
-export default function ResultPage({ session, onRestart }: Props) {
+export default function ResultPage({ session, onRestart, onStartReview }: Props) {
   const result = useMemo(() => safeCalc(session), [session])
   const [reviewOpen, setReviewOpen] = useState(false)
 
@@ -139,7 +140,7 @@ export default function ResultPage({ session, onRestart }: Props) {
         </div>
       )}
 
-      {/* ③ 오답 복습 */}
+      {/* ③ 오답 미리보기 (최대 3개) */}
       <div className="result-review-section">
         {wrongQuestions.length > 0 ? (
           <>
@@ -147,7 +148,7 @@ export default function ResultPage({ session, onRestart }: Props) {
               className="result-review-toggle"
               onClick={() => setReviewOpen((o) => !o)}
             >
-              <span>틀린 문제 다시 볼래요</span>
+              <span>오답 미리 보기</span>
               <span className="result-review-count">{wrongQuestions.length}개</span>
               <span className={`result-review-chevron${reviewOpen ? ' open' : ''}`}>›</span>
             </button>
@@ -169,21 +170,43 @@ export default function ResultPage({ session, onRestart }: Props) {
 
       {/* ④ CTA 영역 */}
       <div className="result-cta-group">
-        <button
-          className="result-cta-btn"
-          onClick={() => {
-            logEvent(EVENTS.RESULT_RETRY_CLICKED)
-            onRestart()
-          }}
-        >
-          다시 해봐요
-        </button>
-        <button
-          className="result-cta-btn result-cta-btn--secondary"
-          onClick={onRestart}
-        >
-          {recommendText}
-        </button>
+        {onStartReview && wrongQuestions.length > 0 ? (
+          <>
+            <button
+              className="result-cta-btn result-cta-btn--review"
+              onClick={onStartReview}
+            >
+              틀린 문제 다시 풀래요
+            </button>
+            <button
+              className="result-cta-btn result-cta-btn--secondary"
+              onClick={() => {
+                logEvent(EVENTS.RESULT_RETRY_CLICKED)
+                onRestart()
+              }}
+            >
+              처음부터 다시 해봐요
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="result-cta-btn"
+              onClick={() => {
+                logEvent(EVENTS.RESULT_RETRY_CLICKED)
+                onRestart()
+              }}
+            >
+              다시 해봐요
+            </button>
+            <button
+              className="result-cta-btn result-cta-btn--secondary"
+              onClick={onRestart}
+            >
+              {recommendText}
+            </button>
+          </>
+        )}
       </div>
     </main>
   )

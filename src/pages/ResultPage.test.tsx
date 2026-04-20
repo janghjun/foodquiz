@@ -50,10 +50,24 @@ describe('ResultPage 2.0', () => {
     expect(screen.getByText('모든 문제를 맞혔어요!')).toBeInTheDocument()
   })
 
-  it('오답이 있으면 복습 토글 버튼이 뜬다', () => {
+  it('오답이 있으면 오답 미리보기 토글 버튼이 뜬다', () => {
     const session = makeCompletedSession(false)
     render(<ResultPage session={session} onRestart={() => {}} />)
-    expect(screen.getByRole('button', { name: /틀린 문제 다시 볼래요/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /오답 미리 보기/ })).toBeInTheDocument()
+  })
+
+  it('onStartReview 제공 시 틀린 문제 다시 풀래요 CTA가 뜬다', () => {
+    const session = makeCompletedSession(false)
+    render(<ResultPage session={session} onRestart={() => {}} onStartReview={() => {}} />)
+    expect(screen.getByRole('button', { name: '틀린 문제 다시 풀래요' })).toBeInTheDocument()
+  })
+
+  it('onStartReview 클릭 시 콜백 호출', () => {
+    const onStartReview = vi.fn()
+    const session = makeCompletedSession(false)
+    render(<ResultPage session={session} onRestart={() => {}} onStartReview={onStartReview} />)
+    fireEvent.click(screen.getByRole('button', { name: '틀린 문제 다시 풀래요' }))
+    expect(onStartReview).toHaveBeenCalledTimes(1)
   })
 
   it('session이 비정상이면 fallback UI를 렌더한다', () => {
