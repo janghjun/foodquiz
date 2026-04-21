@@ -27,6 +27,7 @@ function makeHistoryItem(correctCount: number, totalCount: number): QuizHistoryI
     sessionType: 'normal',
     correctCount,
     totalCount,
+    score: totalCount > 0 ? correctCount / totalCount : 0,
     resultType: 'snack-nostalgia-master',
   }
 }
