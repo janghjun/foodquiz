@@ -8,7 +8,7 @@ import {
   isCorrect,
 } from '../features/quiz'
 import { mockPack } from '../features/content'
-import { getQuizImageSrc } from '../features/content/imageAssets'
+import { resolveImageSrc } from '../features/content/imageAssets'
 import type { QuizSession, QuestionFormat, QuestionCategory, ImageToYearQuestion } from '../features/quiz'
 import { logEvent, EVENTS } from '../features/analytics'
 import './QuizPage.css'
@@ -43,18 +43,26 @@ function resolveVariant(
 }
 
 // key={question.id} 로 마운트해야 문제 이동 시 error 상태가 자동 초기화됨
-function QuizImageBlock({ questionId, category }: { questionId: string; category: QuestionCategory }) {
-  const src = getQuizImageSrc(questionId)
-  const [error, setError] = useState(false)
+function QuizImageBlock({
+  questionId,
+  visualAssetKey,
+  category,
+}: {
+  questionId: string
+  visualAssetKey: string | undefined
+  category: QuestionCategory
+}) {
+  const resolved = resolveImageSrc(questionId, visualAssetKey, category)
+  const [imgError, setImgError] = useState(false)
 
-  if (src && !error) {
+  if (resolved.kind === 'approved' && !imgError) {
     return (
       <div className="quiz-image-wrapper">
         <img
           className="quiz-image"
-          src={src}
+          src={resolved.src}
           alt=""
-          onError={() => setError(true)}
+          onError={() => setImgError(true)}
         />
       </div>
     )
@@ -183,6 +191,7 @@ export default function QuizPage({ onFinish, initialSession, quizLabel }: Props)
         <QuizImageBlock
           key={question.id}
           questionId={question.id}
+          visualAssetKey={(question as ImageToYearQuestion).visualAssetKey}
           category={question.category}
         />
       )}
