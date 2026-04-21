@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import HomePage from './pages/HomePage'
 import QuizPage from './pages/QuizPage'
 import ResultPage from './pages/ResultPage'
 import type { QuizSession } from './features/quiz'
-import { createQuizSession, createAdaptiveSession, createDailySession } from './features/quiz'
+import { createQuizSession, createAdaptiveSession, createDailySession, createCategorySession, getCategoryLabel } from './features/quiz'
 import { mockPack } from './features/content'
+import type { QuizPack } from './features/content'
 import { loadUserQuizState } from './features/state/userQuizState'
+import { resolveAnonymousKey } from './features/identity/anonymousKey'
 
 export type Screen = 'home' | 'quiz' | 'result'
 
@@ -34,6 +36,9 @@ export default function App() {
     try { return sessionStorage.getItem(RESULT_KEY) ? 'result' : 'home' } catch { return 'home' }
   })
 
+  // anonymous key bootstrap — Toss SDK or local UUID, fire-and-forget
+  useEffect(() => { resolveAnonymousKey().catch(() => {}) }, [])
+
   const handleFinish = (s: QuizSession) => {
     try { sessionStorage.setItem(RESULT_KEY, JSON.stringify(s)) } catch { /* noop */ }
     setCompletedSession(s)
@@ -54,6 +59,16 @@ export default function App() {
     setPendingSession(session)
     setQuizLabel(label)
     setScreen('quiz')
+  }
+
+  const handleStartCategory = (categoryKey: string) => {
+    const session = createCategorySession(mockPack.questions, categoryKey, { packId: mockPack.packId })
+    startWith(session, getCategoryLabel(categoryKey))
+  }
+
+  const handleStartSeasonal = (pack: QuizPack) => {
+    const session = createQuizSession(pack.questions, { packId: pack.packId })
+    startWith(session, pack.meta?.title ?? pack.title)
   }
 
   const handleStart = () => {
@@ -95,6 +110,9 @@ export default function App() {
           '오늘의 퀴즈',
         )
       }
+      onStartReview={(reviewSession) => startWith(reviewSession, '오답 복습')}
+      onStartCategory={handleStartCategory}
+      onStartSeasonal={handleStartSeasonal}
     />
   )
 }

@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import ResultPage from './ResultPage'
 import type { QuizSession } from '../features/quiz'
 import { createQuizSession, submitAnswer, goNext } from '../features/quiz'
 import { mockPack } from '../features/content'
 
-// 테스트 간 localStorage 오염 방지
+// 테스트 간 localStorage / navigator 오염 방지
 beforeEach(() => {
   localStorage.clear()
 })
@@ -84,5 +84,37 @@ describe('ResultPage 2.0', () => {
     render(<ResultPage session={null as unknown as QuizSession} onRestart={() => {}} />)
     expect(screen.getByText('결과를 계산하지 못했어요')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '다시 해볼래요' })).toBeInTheDocument()
+  })
+
+  it('공유 버튼이 렌더된다', () => {
+    render(<ResultPage session={makeCompletedSession()} onRestart={() => {}} />)
+    expect(screen.getByRole('button', { name: '결과 공유해요' })).toBeInTheDocument()
+  })
+
+  it('Web Share API 사용 가능 시 공유 후 버튼 텍스트가 바뀐다', async () => {
+    Object.defineProperty(navigator, 'share', {
+      value:        vi.fn().mockResolvedValue(undefined),
+      configurable: true,
+      writable:     true,
+    })
+    render(<ResultPage session={makeCompletedSession()} onRestart={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: '결과 공유해요' }))
+    expect(await screen.findByText('공유했어요 ✓')).toBeInTheDocument()
+  })
+
+  it('clipboard fallback 시 복사 완료 메시지가 뜬다', async () => {
+    Object.defineProperty(navigator, 'share', {
+      value:        undefined,
+      configurable: true,
+      writable:     true,
+    })
+    Object.defineProperty(navigator, 'clipboard', {
+      value:        { writeText: vi.fn().mockResolvedValue(undefined) },
+      configurable: true,
+      writable:     true,
+    })
+    render(<ResultPage session={makeCompletedSession()} onRestart={() => {}} />)
+    fireEvent.click(screen.getByRole('button', { name: '결과 공유해요' }))
+    expect(await screen.findByText('클립보드에 복사했어요 ✓')).toBeInTheDocument()
   })
 })

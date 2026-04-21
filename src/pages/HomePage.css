@@ -1,76 +1,102 @@
 .home-screen {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   min-height: 100dvh;
-  padding: 52px 24px 36px;
+  padding: 52px 20px 36px;
   max-width: 440px;
   margin: 0 auto;
+  gap: 16px;
 }
 
 .home-screen--center {
-  justify-content: center;
-  gap: 20px;
-}
-
-/* 시즌 배지 */
-.home-badge {
-  display: inline-flex;
   align-items: center;
-  padding: 5px 14px;
-  border-radius: 100px;
-  background: #EFF6FF;
-  color: #3182F6;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 28px;
+  justify-content: center;
 }
 
-/* 타이틀 */
+/* ── 헤더 ────────────────────────────────────────────── */
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
 .home-title {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 800;
   color: #191F28;
   letter-spacing: -0.01em;
-  margin-bottom: 10px;
+  margin: 0;
 }
 
-/* 설명 */
-.home-desc {
+.home-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 100px;
+  background: #EFF6FF;
+  color: #3182F6;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── 내 현황 카드 ─────────────────────────────────────── */
+.home-summary-card {
+  background: #F9FAFB;
+  border-radius: 16px;
+  padding: 18px 20px;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.home-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-summary-type {
+  font-size: 15px;
+  font-weight: 700;
+  color: #191F28;
+}
+
+.home-summary-score {
+  font-size: 22px;
+  font-weight: 800;
+  color: #191F28;
+  line-height: 1;
+}
+
+.home-summary-score-sep {
   font-size: 16px;
-  color: #333D4B;
-  text-align: center;
-  line-height: 1.6;
-  margin-bottom: 6px;
+  color: #8B95A1;
+  margin: 0 2px;
 }
 
-/* 보조 카피 */
-.home-meta {
+.home-summary-empty {
   font-size: 14px;
   color: #8B95A1;
-  margin-bottom: 36px;
+  margin: 0;
 }
 
-/* 최근 기록 */
-.home-last-record {
-  font-size: 13px;
-  color: #8B95A1;
-  margin-bottom: 8px;
-}
-
-/* 통계 칩 */
+/* ── 통계 칩 ─────────────────────────────────────────── */
 .home-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 20px;
 }
 
 .home-stats-item {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  background: #F2F4F6;
+  background: #fff;
   border-radius: 100px;
   font-size: 12px;
   font-weight: 600;
@@ -82,13 +108,93 @@
   color: #E03131;
 }
 
-/* 예시 문제 카드 */
-.home-example-card {
+/* ── 오늘의 트렌드 한 입 ─────────────────────────────── */
+.home-trend-card {
   width: 100%;
+  background: linear-gradient(135deg, #FFFBEB 0%, #FFF7ED 100%);
+  border: 1.5px solid #FDE68A;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.home-trend-card--action {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.home-trend-card--action:active {
+  background: #FEF3C7;
+}
+
+.home-trend-card--empty {
+  opacity: 0.6;
+}
+
+.home-trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-trend-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  color: #D97706;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.home-trend-arrow {
+  font-size: 18px;
+  color: #D97706;
+}
+
+.home-trend-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #191F28;
+  margin: 2px 0 0;
+  letter-spacing: -0.01em;
+}
+
+.home-trend-desc {
+  font-size: 14px;
+  color: #4E5968;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.home-trend-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.home-trend-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400E;
+  background: #FEF3C7;
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+.home-trend-empty {
+  font-size: 14px;
+  color: #8B95A1;
+  margin: 4px 0 0;
+}
+
+/* ── 예시 문제 카드 ──────────────────────────────────── */
+.home-example-card {
   background: #F9FAFB;
   border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 32px;
+  padding: 18px 20px;
 }
 
 .home-example-label {
@@ -106,7 +212,7 @@
   font-weight: 600;
   color: #191F28;
   line-height: 1.5;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .home-example-choices {
@@ -129,6 +235,13 @@
   line-height: 1.3;
 }
 
+/* ── 액션 그룹 ───────────────────────────────────────── */
+.home-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 /* 오늘의 퀴즈 카드 */
 .home-daily-card {
   width: 100%;
@@ -139,7 +252,6 @@
   background: #FFF7ED;
   border: 1.5px solid #FFEDD5;
   border-radius: 14px;
-  margin-bottom: 12px;
   cursor: pointer;
   font-family: inherit;
   text-align: left;
@@ -182,20 +294,167 @@
   font-size: 17px;
   font-weight: 700;
   cursor: pointer;
-  margin-top: auto;
+  font-family: inherit;
 }
 
 .home-cta:active {
   background: #1B64DA;
 }
 
-/* 상태 텍스트 */
-.home-status-dim {
-  font-size: 16px;
+/* 오답 복습 행 */
+.home-review-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #F2F4F6;
+  border: none;
+  border-radius: 12px;
+  cursor: default;
+  font-family: inherit;
+  text-align: left;
+}
+
+.home-review-row--active {
+  background: #FFF1F0;
+  cursor: pointer;
+}
+
+.home-review-row--active:active {
+  background: #FFE4E2;
+}
+
+.home-review-label {
+  font-size: 14px;
+  font-weight: 600;
   color: #8B95A1;
 }
 
+.home-review-row--active .home-review-label {
+  color: #E03131;
+}
+
+.home-review-arrow {
+  font-size: 18px;
+  color: #E03131;
+}
+
+/* ── Seasonal Hub ────────────────────────────────────── */
+.home-seasonal-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-seasonal-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+  border: 1.5px solid #BBF7D0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.home-seasonal-card:active {
+  background: #D1FAE5;
+}
+
+.home-seasonal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.home-seasonal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.home-seasonal-sub {
+  font-size: 12px;
+  color: #15803D;
+}
+
+.home-seasonal-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.home-seasonal-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: #16A34A;
+  background: #DCFCE7;
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+.home-seasonal-arrow {
+  font-size: 20px;
+  color: #16A34A;
+}
+
+.home-seasonal-empty {
+  font-size: 14px;
+  color: #8B95A1;
+  padding: 14px 0 4px;
+  margin: 0;
+}
+
+/* ── 카테고리 선택 ───────────────────────────────────── */
+.home-category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-category-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8B95A1;
+  letter-spacing: 0.02em;
+}
+
+.home-category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-category-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 16px;
+  background: #F2F4F6;
+  border: none;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333D4B;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.home-category-chip:active {
+  background: #E5E8EB;
+}
+
+/* ── fallback ────────────────────────────────────────── */
 .home-status-body {
   font-size: 16px;
   color: #333D4B;
+}
+
+.home-status-dim {
+  font-size: 16px;
+  color: #8B95A1;
 }

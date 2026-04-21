@@ -227,6 +227,40 @@
   border-radius: 12px;
 }
 
+/* ── 공유 버튼 ──────────────────────────── */
+
+.result-share-section {
+  width: 100%;
+}
+
+.result-share-btn {
+  width: 100%;
+  padding: 13px 16px;
+  background: transparent;
+  border: 1.5px solid #E5E8EB;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #4E5968;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.result-share-btn:active {
+  background: #F2F4F6;
+}
+
+.result-share-btn--fail {
+  border-color: #E5E8EB;
+  color: #8B95A1;
+  cursor: default;
+}
+
 /* ── CTA 영역 ────────────────────────────── */
 
 .result-cta-group {

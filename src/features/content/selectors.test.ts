@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { selectActivePack, isPackInDateRange } from './selectors'
+import { selectActivePack, isPackInDateRange, getActiveSeasonalPacks } from './selectors'
 import type { QuizPack } from './loadPack'
 
 function makePack(
@@ -94,5 +94,56 @@ describe('selectActivePack', () => {
   it('type이 core인 pack은 seasonal 후보에서 제외', () => {
     const notSeasonal = makePack('s-core', 'core', 'active', '2026-03-01', '2026-05-31')
     expect(selectActivePack(core, [notSeasonal], '2026-04-21')).toBe(core)
+  })
+})
+
+describe('getActiveSeasonalPacks', () => {
+  it('active seasonal pack 목록을 반환한다', () => {
+    const s1 = makePack('s1', 'seasonal', 'active', '2026-04-01', '2026-06-30')
+    const s2 = makePack('s2', 'seasonal', 'active', '2026-03-01', '2026-05-31')
+    const result = getActiveSeasonalPacks([s1, s2], '2026-04-21')
+    expect(result).toHaveLength(2)
+  })
+
+  it('active seasonal이 없으면 빈 배열을 반환한다 (core fallback 아님)', () => {
+    const expired = makePack('s1', 'seasonal', 'expired', '2026-01-01', '2026-02-28')
+    expect(getActiveSeasonalPacks([expired], '2026-04-21')).toHaveLength(0)
+  })
+
+  it('최신 startsAt 순으로 정렬한다', () => {
+    const old    = makePack('s-old', 'seasonal', 'active', '2026-01-01', null)
+    const recent = makePack('s-new', 'seasonal', 'active', '2026-04-01', null)
+    const result = getActiveSeasonalPacks([old, recent], '2026-04-21')
+    expect(result[0].packId).toBe('s-new')
+    expect(result[1].packId).toBe('s-old')
+  })
+
+  it('limit 파라미터로 개수를 제한한다', () => {
+    const packs = Array.from({ length: 5 }, (_, i) =>
+      makePack(`s${i}`, 'seasonal', 'active', '2026-04-01', null),
+    )
+    expect(getActiveSeasonalPacks(packs, '2026-04-21', 2)).toHaveLength(2)
+  })
+
+  it('기본 limit은 3이다', () => {
+    const packs = Array.from({ length: 5 }, (_, i) =>
+      makePack(`s${i}`, 'seasonal', 'active', '2026-04-01', null),
+    )
+    expect(getActiveSeasonalPacks(packs, '2026-04-21')).toHaveLength(3)
+  })
+
+  it('scheduled pack은 포함하지 않는다', () => {
+    const scheduled = makePack('s1', 'seasonal', 'scheduled', '2026-06-01', null)
+    expect(getActiveSeasonalPacks([scheduled], '2026-04-21')).toHaveLength(0)
+  })
+
+  it('날짜 범위 밖의 active pack은 포함하지 않는다', () => {
+    const future = makePack('s1', 'seasonal', 'active', '2026-06-01', '2026-08-31')
+    expect(getActiveSeasonalPacks([future], '2026-04-21')).toHaveLength(0)
+  })
+
+  it('문항이 없는 pack은 포함하지 않는다', () => {
+    const empty = makePack('s1', 'seasonal', 'active', '2026-04-01', null, 0)
+    expect(getActiveSeasonalPacks([empty], '2026-04-21')).toHaveLength(0)
   })
 })

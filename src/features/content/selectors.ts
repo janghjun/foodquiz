@@ -55,3 +55,31 @@ export function getDisplayMeta(
   const active = selectActivePack(corePack, seasonalPacks, dateKey)
   return active.meta
 }
+
+/**
+ * 현재 날짜 기준 active seasonal pack 목록 반환 (최신 startsAt 순, 최대 limit개).
+ * core pack은 포함하지 않음.
+ */
+export function getActiveSeasonalPacks(
+  seasonalPacks: QuizPack[],
+  dateKey?: string,
+  limit = 3,
+): QuizPack[] {
+  const today = dateKey ?? new Date().toISOString().slice(0, 10)
+
+  return seasonalPacks
+    .filter((p) => {
+      const meta = p.meta
+      if (!meta) return false
+      if (meta.type !== 'seasonal') return false
+      if (meta.status !== 'active') return false
+      if (p.questions.length === 0) return false
+      return isPackInDateRange(meta, today)
+    })
+    .sort((a, b) => {
+      const aStart = a.meta?.startsAt ?? ''
+      const bStart = b.meta?.startsAt ?? ''
+      return bStart.localeCompare(aStart)
+    })
+    .slice(0, limit)
+}

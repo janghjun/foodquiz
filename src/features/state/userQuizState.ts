@@ -28,6 +28,7 @@ export interface QuizHistoryItem {
   score: number       // 0~1
   resultType: string
   packId: string
+  categoryKey?: string
 }
 
 export interface UserQuizState {
@@ -116,6 +117,7 @@ export function applySessionResult(
     score:        result.score.rate,
     resultType:   result.resultType.id,
     packId,
+    ...(session.categoryKey ? { categoryKey: session.categoryKey } : {}),
   }
 
   const updatedProgress: Record<string, QuestionProgress> = { ...current.progressByQuestionId }

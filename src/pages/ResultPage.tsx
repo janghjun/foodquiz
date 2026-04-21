@@ -4,10 +4,11 @@ import type { CategoryStat, QuizResult } from '../features/result'
 import type { QuizSession } from '../features/quiz'
 import { logEvent, EVENTS } from '../features/analytics'
 import { mockPack } from '../features/content'
-import { loadHistory } from '../features/history'
 import { loadUserQuizState, saveUserQuizState, applySessionResult } from '../features/state/userQuizState'
 import { getWrongNoteQuestions, createWrongNoteSession } from '../features/review/reviewSelectors'
 import { tryRequestReview } from '../features/review/reviewPrompt'
+import { shareResult } from '../features/share/shareCard'
+import type { ShareOutcome } from '../features/share/shareCard'
 import './ResultPage.css'
 
 interface Props {
@@ -45,6 +46,7 @@ function safeCalc(session: QuizSession): QuizResult | null {
 export default function ResultPage({ session, onRestart, onStartReview }: Props) {
   const result = useMemo(() => safeCalc(session), [session])
   const [reviewOpen, setReviewOpen] = useState(false)
+  const [shareOutcome, setShareOutcome] = useState<ShareOutcome | null>(null)
 
   // ── 상태 저장 ─────────────────────────────────────────────
   // useMemo로 동기 계산 → 첫 렌더부터 올바른 wrong-note count 제공
@@ -63,7 +65,7 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
       pack_id:     session.packId ?? mockPack.packId,
     })
     saveUserQuizState(newState)
-    tryRequestReview(loadHistory())
+    tryRequestReview(newState, session)
   }, [newState])
 
   // ── 오답 노트 (progressive state 기준) ───────────────────
@@ -104,6 +106,17 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
     .slice(0, 3)
 
   const canReview = onStartReview !== undefined && wrongNoteQuestions.length > 0
+
+  const handleShare = async () => {
+    const outcome = await shareResult({
+      resultTypeLabel: result.resultType.label,
+      resultTypeId:    result.resultType.id,
+      correctCount:    score.correct,
+      totalCount:      score.total,
+    })
+    setShareOutcome(outcome)
+    setTimeout(() => setShareOutcome(null), 2200)
+  }
 
   const handleStartReview = () => {
     if (!canReview) return
@@ -192,7 +205,23 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
         )}
       </div>
 
-      {/* ④ CTA — 오답 노트 기준 */}
+      {/* ④ 공유 */}
+      <div className="result-share-section">
+        <button
+          className={`result-share-btn${shareOutcome === 'unavailable' ? ' result-share-btn--fail' : ''}`}
+          onClick={handleShare}
+        >
+          {shareOutcome === 'copied'
+            ? '클립보드에 복사했어요 ✓'
+            : shareOutcome === 'shared'
+            ? '공유했어요 ✓'
+            : shareOutcome === 'unavailable'
+            ? '공유를 지원하지 않는 환경이에요'
+            : '결과 공유해요'}
+        </button>
+      </div>
+
+      {/* ⑤ CTA — 오답 노트 기준 */}
       <div className="result-cta-group">
         {canReview ? (
           <>
