@@ -3,8 +3,9 @@ import HomePage from './pages/HomePage'
 import QuizPage from './pages/QuizPage'
 import ResultPage from './pages/ResultPage'
 import type { QuizSession } from './features/quiz'
-import { createReviewSession, createDailySession } from './features/quiz'
+import { createQuizSession, createAdaptiveSession, createReviewSession, createDailySession } from './features/quiz'
 import { mockPack } from './features/content'
+import { loadUserQuizState } from './features/state/userQuizState'
 
 export type Screen = 'home' | 'quiz' | 'result'
 
@@ -17,7 +18,7 @@ function loadSavedSession(): QuizSession | null {
     const p = JSON.parse(raw) as QuizSession & { startedAt: string; completedAt: string | null }
     return {
       ...p,
-      startedAt: new Date(p.startedAt),
+      startedAt:   new Date(p.startedAt),
       completedAt: p.completedAt ? new Date(p.completedAt) : null,
     }
   } catch {
@@ -27,9 +28,8 @@ function loadSavedSession(): QuizSession | null {
 
 export default function App() {
   const [completedSession, setCompletedSession] = useState<QuizSession | null>(loadSavedSession)
-  // pending: review 또는 daily용 pre-built session
-  const [pendingSession, setPendingSession] = useState<QuizSession | null>(null)
-  const [quizLabel, setQuizLabel] = useState<string | undefined>(undefined)
+  const [pendingSession, setPendingSession]     = useState<QuizSession | null>(null)
+  const [quizLabel, setQuizLabel]               = useState<string | undefined>(undefined)
   const [screen, setScreen] = useState<Screen>(() => {
     try { return sessionStorage.getItem(RESULT_KEY) ? 'result' : 'home' } catch { return 'home' }
   })
@@ -50,10 +50,20 @@ export default function App() {
     setScreen('home')
   }
 
-  const startWith = (session: QuizSession, label: string) => {
+  const startWith = (session: QuizSession, label?: string) => {
     setPendingSession(session)
     setQuizLabel(label)
     setScreen('quiz')
+  }
+
+  const handleStart = () => {
+    const state = loadUserQuizState()
+    const hasProgress = Object.keys(state.progressByQuestionId).length >= 5
+    const opts = { packId: mockPack.packId }
+    const session = hasProgress
+      ? createAdaptiveSession(mockPack.questions, state.progressByQuestionId, opts)
+      : createQuizSession(mockPack.questions, opts)
+    startWith(session)
   }
 
   if (screen === 'quiz') {
@@ -79,8 +89,13 @@ export default function App() {
 
   return (
     <HomePage
-      onStart={() => setScreen('quiz')}
-      onStartDaily={() => startWith(createDailySession(mockPack.questions), '오늘의 퀴즈')}
+      onStart={handleStart}
+      onStartDaily={() =>
+        startWith(
+          createDailySession(mockPack.questions, undefined, { packId: mockPack.packId }),
+          '오늘의 퀴즈',
+        )
+      }
     />
   )
 }

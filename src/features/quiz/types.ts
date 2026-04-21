@@ -56,4 +56,5 @@ export interface QuizSession {
   startedAt: Date
   completedAt: Date | null
   sessionType?: SessionType
+  packId?: string
 }

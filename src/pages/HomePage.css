@@ -55,7 +55,31 @@
 .home-last-record {
   font-size: 13px;
   color: #8B95A1;
+  margin-bottom: 8px;
+}
+
+/* 통계 칩 */
+.home-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 20px;
+}
+
+.home-stats-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: #F2F4F6;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4E5968;
+}
+
+.home-stats-item--weak {
+  background: #FFF1F0;
+  color: #E03131;
 }
 
 /* 예시 문제 카드 */

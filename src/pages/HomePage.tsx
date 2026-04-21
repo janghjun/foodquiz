@@ -4,7 +4,16 @@ import type { MenuToYearQuestion } from '../features/quiz'
 import { logEvent, EVENTS } from '../features/analytics'
 import { getLastRecord } from '../features/history'
 import { RESULT_TYPES } from '../features/result'
+import { loadUserQuizState, getUserStats } from '../features/state/userQuizState'
 import './HomePage.css'
+
+const CATEGORY_LABEL: Record<string, string> = {
+  dessert_trend:       '디저트 트렌드',
+  snack_recall:        '추억 간식',
+  convenience_dessert: '편의점 디저트',
+  solo_meal:           '혼밥 문화',
+  wellness_food:       '건강식 트렌드',
+}
 
 interface Props {
   onStart: () => void
@@ -14,6 +23,7 @@ interface Props {
 export default function HomePage({ onStart, onStartDaily }: Props) {
   useEffect(() => { logEvent(EVENTS.HOME_VIEW) }, [])
   const lastRecord = useMemo(() => getLastRecord(), [])
+  const stats      = useMemo(() => getUserStats(loadUserQuizState(), mockPack.questions), [])
 
   // 팩이 비어있으면 에러 화면 — 로컬 JSON이므로 실제로는 발생하지 않음
   if (mockPack.questions.length === 0) {
@@ -43,6 +53,20 @@ export default function HomePage({ onStart, onStartDaily }: Props) {
           {' '}·{' '}
           {lastRecord.correctCount}/{lastRecord.totalCount}점
         </p>
+      )}
+
+      {stats.totalPlays >= 2 && (
+        <div className="home-stats">
+          <span className="home-stats-item">총 {stats.totalPlays}번 플레이</span>
+          {stats.bestScore !== null && (
+            <span className="home-stats-item">최고 {Math.round(stats.bestScore * 100)}%</span>
+          )}
+          {stats.weakestCategory && (
+            <span className="home-stats-item home-stats-item--weak">
+              취약 {CATEGORY_LABEL[stats.weakestCategory] ?? stats.weakestCategory}
+            </span>
+          )}
+        </div>
       )}
 
       <div className="home-example-card">

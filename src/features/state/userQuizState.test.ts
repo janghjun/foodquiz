@@ -4,6 +4,7 @@ import {
   loadUserQuizState,
   saveUserQuizState,
   applySessionResult,
+  getUserStats,
 } from './userQuizState'
 import type { UserQuizState, QuizHistoryItem } from './userQuizState'
 import type { QuizSession } from '../quiz/types'
@@ -139,5 +140,45 @@ describe('userQuizState', () => {
     expect(next.progressByQuestionId['q2'].lastResult).toBe('skipped')
     expect(next.progressByQuestionId['q2'].attemptCount).toBe(1)
     expect(next.progressByQuestionId['q2'].wrongCount).toBe(0)
+  })
+})
+
+describe('getUserStats', () => {
+  const questions = [
+    { id: 'q1', category: 'dessert_trend' },
+    { id: 'q2', category: 'snack_recall' },
+  ]
+
+  it('플레이 기록 없으면 totalPlays=0, bestScore=null', () => {
+    const stats = getUserStats(defaultUserQuizState(), questions)
+    expect(stats.totalPlays).toBe(0)
+    expect(stats.bestScore).toBeNull()
+    expect(stats.weakestCategory).toBeNull()
+  })
+
+  it('bestScore는 history 중 최고 점수', () => {
+    let state = defaultUserQuizState()
+    state = applySessionResult(state, makeSession(), makeResult(0.6), 'p')
+    state = applySessionResult(state, makeSession(), makeResult(0.9), 'p')
+    const stats = getUserStats(state, questions)
+    expect(stats.bestScore).toBe(0.9)
+  })
+
+  it('취약 카테고리는 오답률이 가장 높은 카테고리', () => {
+    // q1(dessert_trend) 오답, q2(snack_recall) 정답
+    const state = applySessionResult(
+      defaultUserQuizState(),
+      makeSession({ answers: { q1: 'X', q2: 'X' } }), // q1 wrong(answer=O), q2 correct(answer=X)
+      makeResult(),
+      'p',
+    )
+    const stats = getUserStats(state, questions)
+    expect(stats.weakestCategory).toBe('dessert_trend')
+  })
+
+  it('questions를 넘기지 않으면 weakestCategory=null', () => {
+    let state = defaultUserQuizState()
+    state = applySessionResult(state, makeSession(), makeResult(), 'p')
+    expect(getUserStats(state).weakestCategory).toBeNull()
   })
 })

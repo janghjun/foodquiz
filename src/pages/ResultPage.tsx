@@ -52,7 +52,10 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
       result_type: result.resultType.id,
       pack_id:     mockPack.packId,
     })
-    const newState = applySessionResult(loadUserQuizState(), session, result, mockPack.packId)
+    const newState = applySessionResult(
+      loadUserQuizState(), session, result,
+      session.packId ?? mockPack.packId,
+    )
     saveUserQuizState(newState)
     tryRequestReview(loadHistory())
   }, [result])

@@ -44,17 +44,22 @@ function deterministicPick(questions: Question[], count: number, seed: number): 
  * 날짜 기준 daily quiz 세션 생성.
  * dateKey를 생략하면 오늘 날짜 사용.
  */
-export function createDailySession(questions: Question[], dateKey?: string): QuizSession {
+export function createDailySession(
+  questions: Question[],
+  dateKey?: string,
+  options: { packId?: string } = {},
+): QuizSession {
   const key = dateKey ?? getDailyDateKey()
   const seed = hashString(key)
   const picked = deterministicPick(questions, DAILY_QUIZ_COUNT, seed)
 
   return {
-    questions: picked,
+    questions:    picked,
     currentIndex: 0,
-    answers: {},
-    startedAt: new Date(),
-    completedAt: null,
-    sessionType: 'daily',
+    answers:      {},
+    startedAt:    new Date(),
+    completedAt:  null,
+    sessionType:  'daily',
+    packId:       options.packId,
   }
 }

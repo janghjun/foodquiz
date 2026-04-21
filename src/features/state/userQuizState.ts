@@ -2,6 +2,8 @@ import { STORAGE_KEYS } from '../../constants/storageKeys'
 import type { QuizSession, SessionType } from '../quiz/types'
 import type { QuizResult } from '../result/types'
 
+type QuestionLike = { id: string; category: string }
+
 const MAX_HISTORY = 20
 
 // ── 타입 정의 ────────────────────────────────────────────────────
@@ -147,4 +149,44 @@ export function applySessionResult(
     history:              [historyItem, ...current.history].slice(0, MAX_HISTORY),
     progressByQuestionId: updatedProgress,
   }
+}
+
+// ── 통계 ──────────────────────────────────────────────────────
+
+export interface UserStats {
+  totalPlays: number
+  bestScore: number | null    // 0~1
+  weakestCategory: string | null
+}
+
+/**
+ * UserQuizState에서 홈 화면용 통계를 계산.
+ * questions를 넘기면 취약 카테고리도 계산.
+ */
+export function getUserStats(state: UserQuizState, questions: QuestionLike[] = []): UserStats {
+  const totalPlays = state.history.length
+  const bestScore  = totalPlays > 0
+    ? Math.max(...state.history.map((h) => h.score))
+    : null
+
+  let weakestCategory: string | null = null
+
+  if (questions.length > 0) {
+    const catStats: Record<string, { wrong: number; total: number }> = {}
+    for (const q of questions) {
+      const p = state.progressByQuestionId[q.id]
+      if (!p || p.attemptCount === 0) continue
+      if (!catStats[q.category]) catStats[q.category] = { wrong: 0, total: 0 }
+      catStats[q.category].wrong += p.wrongCount
+      catStats[q.category].total += p.attemptCount
+    }
+    let worstRate = -1
+    for (const [cat, stat] of Object.entries(catStats)) {
+      if (stat.total === 0) continue
+      const rate = stat.wrong / stat.total
+      if (rate > worstRate) { worstRate = rate; weakestCategory = cat }
+    }
+  }
+
+  return { totalPlays, bestScore, weakestCategory }
 }

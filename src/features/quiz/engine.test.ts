@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   createQuizSession,
+  createAdaptiveSession,
   getCurrentQuestion,
   submitAnswer,
   goNext,
@@ -8,6 +9,7 @@ import {
   isCorrect,
   createReviewSession,
 } from './engine'
+import type { QuestionProgress } from '../state/userQuizState'
 import type { Question } from './types'
 
 function makeQuestion(id: string, answer: string): Question {
@@ -249,5 +251,61 @@ describe('createReviewSession', () => {
     createReviewSession(completed)
     expect(completed.answers).toEqual(originalAnswers)
     expect(completed.questions).toHaveLength(4)
+  })
+
+  it('packId가 원본 세션에서 계승된다', () => {
+    const completed = { ...makeCompletedWithMix(), packId: 'my-pack' }
+    const review = createReviewSession(completed)
+    expect(review?.packId).toBe('my-pack')
+  })
+})
+
+// ── createAdaptiveSession ─────────────────────────────────────
+describe('createAdaptiveSession', () => {
+  const pool: Question[] = Array.from({ length: 15 }, (_, i) =>
+    makeQuestion(`qa${i + 1}`, i % 2 === 0 ? 'O' : 'X'),
+  )
+
+  function makeProgress(id: string, wrong: number, total: number): QuestionProgress {
+    return {
+      questionId: id, lastPlayedAt: new Date().toISOString(),
+      lastMode: 'normal', lastPackId: 'p', lastResult: wrong > 0 ? 'wrong' : 'correct',
+      attemptCount: total, correctCount: total - wrong, wrongCount: wrong,
+    }
+  }
+
+  it('10문항을 선택한다', () => {
+    const session = createAdaptiveSession(pool, {})
+    expect(session.questions).toHaveLength(10)
+  })
+
+  it('문항 수가 10개 미만이면 전부 포함한다', () => {
+    const session = createAdaptiveSession(pool.slice(0, 5), {})
+    expect(session.questions).toHaveLength(5)
+  })
+
+  it('중복 문항이 없다', () => {
+    const session = createAdaptiveSession(pool, {})
+    const ids = session.questions.map((q) => q.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('packId가 options에서 전달된다', () => {
+    const session = createAdaptiveSession(pool, {}, { packId: 'test-pack' })
+    expect(session.packId).toBe('test-pack')
+  })
+
+  it('자주 틀린 문항이 포함되는 경향이 있다 (통계적 확인)', () => {
+    // qa1을 100% 오답으로 설정 → 여러 번 실행 시 반드시 포함돼야 할 만큼 높은 가중치
+    const progress: Record<string, QuestionProgress> = {
+      qa1: makeProgress('qa1', 10, 10),  // 100% 오답
+    }
+    let includedCount = 0
+    for (let i = 0; i < 20; i++) {
+      const s = createAdaptiveSession(pool, progress)
+      if (s.questions.some((q) => q.id === 'qa1')) includedCount++
+    }
+    // 가중치 3.0 vs 평균 1.2 → 2.5배 확률. 20회 중 최소 15회 포함 기대
+    expect(includedCount).toBeGreaterThanOrEqual(15)
   })
 })
