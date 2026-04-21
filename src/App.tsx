@@ -3,7 +3,7 @@ import HomePage from './pages/HomePage'
 import QuizPage from './pages/QuizPage'
 import ResultPage from './pages/ResultPage'
 import type { QuizSession } from './features/quiz'
-import { createQuizSession, createAdaptiveSession, createReviewSession, createDailySession } from './features/quiz'
+import { createQuizSession, createAdaptiveSession, createDailySession } from './features/quiz'
 import { mockPack } from './features/content'
 import { loadUserQuizState } from './features/state/userQuizState'
 
@@ -77,12 +77,11 @@ export default function App() {
   }
 
   if (screen === 'result' && completedSession) {
-    const reviewable = createReviewSession(completedSession)
     return (
       <ResultPage
         session={completedSession}
         onRestart={handleRestart}
-        onStartReview={reviewable ? () => startWith(reviewable, '오답 복습') : undefined}
+        onStartReview={(reviewSession) => startWith(reviewSession, '오답 복습')}
       />
     )
   }

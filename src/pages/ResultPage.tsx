@@ -6,13 +6,15 @@ import { logEvent, EVENTS } from '../features/analytics'
 import { mockPack } from '../features/content'
 import { loadHistory } from '../features/history'
 import { loadUserQuizState, saveUserQuizState, applySessionResult } from '../features/state/userQuizState'
+import { getWrongNoteQuestions, createWrongNoteSession } from '../features/review/reviewSelectors'
 import { tryRequestReview } from '../features/review/reviewPrompt'
 import './ResultPage.css'
 
 interface Props {
   session: QuizSession
   onRestart: () => void
-  onStartReview?: () => void
+  /** 오답 노트 복습 시작. 복습 세션을 인수로 전달합니다. */
+  onStartReview?: (session: QuizSession) => void
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -44,21 +46,31 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
   const result = useMemo(() => safeCalc(session), [session])
   const [reviewOpen, setReviewOpen] = useState(false)
 
+  // ── 상태 저장 ─────────────────────────────────────────────
+  // useMemo로 동기 계산 → 첫 렌더부터 올바른 wrong-note count 제공
+  const newState = useMemo(() => {
+    if (!result) return null
+    const current = loadUserQuizState()
+    return applySessionResult(current, session, result, session.packId ?? mockPack.packId)
+  }, [result, session])
+
   useEffect(() => {
-    if (!result) return
+    if (!result || !newState) return
     logEvent(EVENTS.QUIZ_COMPLETE, {
       score:       result.score.correct,
       total:       result.score.total,
       result_type: result.resultType.id,
-      pack_id:     mockPack.packId,
+      pack_id:     session.packId ?? mockPack.packId,
     })
-    const newState = applySessionResult(
-      loadUserQuizState(), session, result,
-      session.packId ?? mockPack.packId,
-    )
     saveUserQuizState(newState)
     tryRequestReview(loadHistory())
-  }, [result])
+  }, [newState])
+
+  // ── 오답 노트 (progressive state 기준) ───────────────────
+  const wrongNoteQuestions = useMemo(() => {
+    if (!newState) return []
+    return getWrongNoteQuestions(newState.progressByQuestionId, mockPack.questions)
+  }, [newState])
 
   if (!result) {
     return (
@@ -79,16 +91,28 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
   const weakCat   = activeCats.length > 1 ? activeCats[activeCats.length - 1] : null
   const showWeak  = weakCat !== null && weakCat[1].rate < (strongCat?.[1].rate ?? 1)
 
-  const wrongQuestions = session.questions
+  const recommendText = weakCat
+    ? (RECOMMEND_TEXT[weakCat[0]] ?? FALLBACK_RECOMMEND)
+    : FALLBACK_RECOMMEND
+
+  // 이번 세션 오답 미리보기 (현재 세션 기준)
+  const wrongPreview = session.questions
     .filter((q) => {
       const s = session.answers[q.id]
       return s !== undefined && s !== q.answer
     })
     .slice(0, 3)
 
-  const recommendText = weakCat
-    ? (RECOMMEND_TEXT[weakCat[0]] ?? FALLBACK_RECOMMEND)
-    : FALLBACK_RECOMMEND
+  const canReview = onStartReview !== undefined && wrongNoteQuestions.length > 0
+
+  const handleStartReview = () => {
+    if (!canReview) return
+    const reviewSession = createWrongNoteSession(
+      wrongNoteQuestions,
+      newState?.latestPackId ?? mockPack.packId,
+    )
+    if (reviewSession) onStartReview!(reviewSession)
+  }
 
   return (
     <main className="result-screen">
@@ -140,21 +164,21 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
         </div>
       )}
 
-      {/* ③ 오답 미리보기 (최대 3개) */}
+      {/* ③ 오답 미리보기 — 이번 세션 기준 */}
       <div className="result-review-section">
-        {wrongQuestions.length > 0 ? (
+        {wrongPreview.length > 0 ? (
           <>
             <button
               className="result-review-toggle"
               onClick={() => setReviewOpen((o) => !o)}
             >
               <span>오답 미리 보기</span>
-              <span className="result-review-count">{wrongQuestions.length}개</span>
+              <span className="result-review-count">{wrongPreview.length}개</span>
               <span className={`result-review-chevron${reviewOpen ? ' open' : ''}`}>›</span>
             </button>
             {reviewOpen && (
               <div className="result-review-list">
-                {wrongQuestions.map((q) => (
+                {wrongPreview.map((q) => (
                   <div key={q.id} className="result-review-item">
                     <p className="result-review-prompt">{q.prompt}</p>
                     <p className="result-review-answer">정답: {q.answer}</p>
@@ -168,13 +192,13 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
         )}
       </div>
 
-      {/* ④ CTA 영역 */}
+      {/* ④ CTA — 오답 노트 기준 */}
       <div className="result-cta-group">
-        {onStartReview && wrongQuestions.length > 0 ? (
+        {canReview ? (
           <>
             <button
               className="result-cta-btn result-cta-btn--review"
-              onClick={onStartReview}
+              onClick={handleStartReview}
             >
               틀린 문제 다시 풀래요
             </button>

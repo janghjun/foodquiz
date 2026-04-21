@@ -1,13 +1,18 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import ResultPage from './ResultPage'
 import type { QuizSession } from '../features/quiz'
 import { createQuizSession, submitAnswer, goNext } from '../features/quiz'
-import { buildLocalPack } from '../features/content'
+import { mockPack } from '../features/content'
 
+// 테스트 간 localStorage 오염 방지
+beforeEach(() => {
+  localStorage.clear()
+})
+
+// mockPack (활성 팩) 기준으로 세션 생성 — ResultPage의 getWrongNoteQuestions와 같은 팩 사용
 function makeCompletedSession(allCorrect = true): QuizSession {
-  const { questions } = buildLocalPack()
-  let s = createQuizSession(questions)
+  let s = createQuizSession(mockPack.questions)
   for (const q of s.questions) {
     s = submitAnswer(s, allCorrect ? q.answer : '__wrong__')
     s = goNext(s)
@@ -29,7 +34,7 @@ describe('ResultPage 2.0', () => {
 
   it('점수 배지(N/10)가 렌더된다', () => {
     render(<ResultPage session={makeCompletedSession()} onRestart={() => {}} />)
-    expect(screen.getByText(/^\d+$/)).toBeInTheDocument() // score correct count
+    expect(screen.getByText(/^\d+$/)).toBeInTheDocument()
   })
 
   it('다시 해봐요 버튼이 있고 클릭 시 onRestart 호출', () => {
@@ -56,18 +61,23 @@ describe('ResultPage 2.0', () => {
     expect(screen.getByRole('button', { name: /오답 미리 보기/ })).toBeInTheDocument()
   })
 
-  it('onStartReview 제공 시 틀린 문제 다시 풀래요 CTA가 뜬다', () => {
+  it('오답이 있고 onStartReview 제공 시 틀린 문제 다시 풀래요 CTA가 뜬다', () => {
     const session = makeCompletedSession(false)
     render(<ResultPage session={session} onRestart={() => {}} onStartReview={() => {}} />)
     expect(screen.getByRole('button', { name: '틀린 문제 다시 풀래요' })).toBeInTheDocument()
   })
 
-  it('onStartReview 클릭 시 콜백 호출', () => {
+  it('onStartReview 클릭 시 QuizSession을 인수로 콜백 호출', () => {
     const onStartReview = vi.fn()
     const session = makeCompletedSession(false)
     render(<ResultPage session={session} onRestart={() => {}} onStartReview={onStartReview} />)
     fireEvent.click(screen.getByRole('button', { name: '틀린 문제 다시 풀래요' }))
     expect(onStartReview).toHaveBeenCalledTimes(1)
+    // 복습 세션(QuizSession)을 인수로 전달하는지 확인
+    expect(onStartReview.mock.calls[0][0]).toMatchObject({
+      sessionType: 'wrong-only',
+      completedAt: null,
+    })
   })
 
   it('session이 비정상이면 fallback UI를 렌더한다', () => {
