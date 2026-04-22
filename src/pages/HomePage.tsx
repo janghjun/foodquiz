@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { mockPack, activeSeasonMeta, activeSeasonalPacks } from '../features/content'
+import { mockPack, activeSeasonalPacks } from '../features/content'
 import type { QuizPack } from '../features/content'
 import { getDailyTrendBite } from '../features/content/dailyTrend'
 import type { MenuToYearQuestion, QuizSession } from '../features/quiz'

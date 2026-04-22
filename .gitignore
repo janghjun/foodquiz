@@ -18,3 +18,6 @@ dist/
 .claude/settings.local.json
 .claude/cache/
 .claude/tmp/
+
+# 콘텐츠 드래프트 — 활성화 전까지 미추적
+src/features/content/*.draft.json
