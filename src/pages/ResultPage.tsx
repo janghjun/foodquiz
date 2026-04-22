@@ -120,12 +120,15 @@ export default function ResultPage({ session, onRestart, onStartReview }: Props)
   }
 
   const handleShare = async () => {
-    const outcome = await shareResult({
-      resultTypeLabel: resultType.label,
-      resultTypeId:    resultType.id,
-      correctCount:    score.correct,
-      totalCount:      score.total,
-    })
+    const outcome = await shareResult(
+      {
+        resultTypeLabel: resultType.label,
+        resultTypeId:    resultType.id,
+        correctCount:    score.correct,
+        totalCount:      score.total,
+      },
+      cardRef.current,  // 현재 표시 중인 카드(정방형/스토리) DOM
+    )
     setShareOutcome(outcome)
     setTimeout(() => setShareOutcome(null), 2200)
   }

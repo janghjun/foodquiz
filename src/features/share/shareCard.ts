@@ -46,20 +46,49 @@ export function buildShareText(data: ShareCardData): ShareText {
 export type ShareOutcome = 'shared' | 'copied' | 'unavailable'
 
 /**
- * Web Share API → clipboard → unavailable 순서로 시도합니다.
+ * 카드를 공유합니다.
+ *
+ * cardEl이 있으면 이미지 공유를 먼저 시도합니다:
+ * 1. toBlob → navigator.share({ files, title, text }) — 이미지 파일 공유
+ * 2. navigator.share({ text }) — 텍스트 공유
+ * 3. clipboard.writeText — 텍스트 복사
+ * 4. unavailable
  */
-export async function shareResult(data: ShareCardData): Promise<ShareOutcome> {
+export async function shareResult(
+  data: ShareCardData,
+  cardEl: HTMLElement | null = null,
+): Promise<ShareOutcome> {
   const text = buildShareText(data)
 
+  // ① 이미지 공유 (cardEl 있고 navigator.share({ files }) 지원)
+  if (cardEl && typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      const { toBlob } = await import('html-to-image')
+      await toBlob(cardEl, CAPTURE_OPTS)            // 캐시 워밍
+      const blob = await toBlob(cardEl, CAPTURE_OPTS)
+      if (blob) {
+        const file = new File([blob], 'foodquiz-result.png', { type: 'image/png' })
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: text.title, text: text.body })
+          return 'shared'
+        }
+      }
+    } catch {
+      // 이미지 캡처 또는 파일 공유 실패 → 텍스트 공유로 진행
+    }
+  }
+
+  // ② 텍스트 공유
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
       await navigator.share({ title: text.title, text: text.full })
       return 'shared'
     } catch {
-      // 사용자가 취소했거나 공유 실패 — clipboard fallback으로 진행
+      // 취소 또는 실패 — clipboard fallback으로 진행
     }
   }
 
+  // ③ 클립보드 복사
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text.full)
@@ -126,34 +155,10 @@ export async function captureShareCard(
 
 // ── 스토리 카드 공유 ─────────────────────────────────────────────
 
-/**
- * 스토리 카드를 이미지 파일로 공유합니다.
- *
- * 우선순위:
- * 1. cardEl 있고 navigator.share({ files }) 지원 → PNG 파일 공유
- * 2. navigator.share 있고 files 미지원 → 텍스트 공유
- * 3. clipboard → copied
- * 4. 모두 불가 → unavailable
- */
+/** shareResult의 alias — cardEl을 받아 이미지 공유를 시도합니다. */
 export async function shareStoryCard(
   data: ShareCardData,
   cardEl: HTMLElement | null = null,
 ): Promise<ShareOutcome> {
-  if (cardEl && typeof navigator !== 'undefined' && navigator.share) {
-    try {
-      const { toBlob } = await import('html-to-image')
-      await toBlob(cardEl, CAPTURE_OPTS)         // 캐시 워밍
-      const blob = await toBlob(cardEl, CAPTURE_OPTS)
-      if (blob) {
-        const file = new File([blob], '먹퀴즈-결과카드.png', { type: 'image/png' })
-        if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file] })
-          return 'shared'
-        }
-      }
-    } catch {
-      // 이미지 캡처 또는 파일 공유 실패 → 텍스트 공유로 fallback
-    }
-  }
-  return shareResult(data)
+  return shareResult(data, cardEl)
 }

@@ -148,6 +148,47 @@ describe('shareResult', () => {
     const result = await shareResult(makeData())
     expect(result).toBe('unavailable')
   })
+
+  it('cardEl + canShare(files) 지원: 이미지 파일을 포함해 공유하고 shared를 반환한다', async () => {
+    const fakeBlob = new Blob(['png'], { type: 'image/png' })
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(fakeBlob) }))
+    const shareSpy = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'share', {
+      value: shareSpy, configurable: true, writable: true,
+    })
+    Object.defineProperty(navigator, 'canShare', {
+      value: vi.fn().mockReturnValue(true), configurable: true, writable: true,
+    })
+
+    const result = await shareResult(makeData(), document.createElement('div'))
+    expect(result).toBe('shared')
+    expect(shareSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ files: expect.any(Array) }),
+    )
+    vi.doUnmock('html-to-image')
+    Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true, writable: true })
+  })
+
+  it('cardEl 있어도 canShare(files) 미지원이면 텍스트 공유로 fallback한다', async () => {
+    const fakeBlob = new Blob(['png'], { type: 'image/png' })
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(fakeBlob) }))
+    const shareSpy = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'share', {
+      value: shareSpy, configurable: true, writable: true,
+    })
+    Object.defineProperty(navigator, 'canShare', {
+      value: vi.fn().mockReturnValue(false), configurable: true, writable: true,
+    })
+
+    const result = await shareResult(makeData(), document.createElement('div'))
+    expect(result).toBe('shared')
+    // files 없이 텍스트만으로 호출됐는지 확인
+    expect(shareSpy).toHaveBeenCalledWith(
+      expect.not.objectContaining({ files: expect.anything() }),
+    )
+    vi.doUnmock('html-to-image')
+    Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true, writable: true })
+  })
 })
 
 // ── captureShareCard ─────────────────────────────────────────────
