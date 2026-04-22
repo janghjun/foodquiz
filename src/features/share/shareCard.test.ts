@@ -153,48 +153,91 @@ describe('shareResult', () => {
 // ── captureShareCard ─────────────────────────────────────────────
 
 describe('captureShareCard', () => {
-  it('cardEl이 null이면 manual을 반환한다', async () => {
-    expect(await captureShareCard(null)).toBe('manual')
+  let originalUA: string
+
+  beforeEach(() => {
+    originalUA = navigator.userAgent
   })
 
-  it('html-to-image toBlob 성공 시 downloaded를 반환한다', async () => {
-    const fakeBlob = new Blob(['png'], { type: 'image/png' })
-    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(fakeBlob) }))
-
-    // URL.createObjectURL / revokeObjectURL stub
-    const createObjURL = vi.fn().mockReturnValue('blob:fake')
-    const revokeObjURL = vi.fn()
-    vi.stubGlobal('URL', { ...URL, createObjectURL: createObjURL, revokeObjectURL: revokeObjURL })
-
-    // <a>.click() stub
-    const clickSpy = vi.fn()
-    vi.spyOn(document, 'createElement').mockReturnValueOnce(
-      Object.assign(document.createElement('a'), { click: clickSpy }),
-    )
-
-    const el = document.createElement('div')
-    const outcome = await captureShareCard(el)
-    expect(outcome).toBe('downloaded')
-
+  afterEach(() => {
+    Object.defineProperty(navigator, 'userAgent', {
+      value: originalUA, configurable: true, writable: true,
+    })
+    Object.defineProperty(navigator, 'canShare', {
+      value: undefined, configurable: true, writable: true,
+    })
+    Object.defineProperty(navigator, 'share', {
+      value: undefined, configurable: true, writable: true,
+    })
     vi.doUnmock('html-to-image')
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 
-  it('html-to-image toBlob이 null을 반환하면 manual을 반환한다', async () => {
-    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(null) }))
+  it('cardEl이 null이면 manual을 반환한다', async () => {
+    expect(await captureShareCard(null)).toBe('manual')
+  })
+
+  it('데스크톱: toBlob 성공 시 downloaded를 반환하고 파일명이 foodquiz-result.png다', async () => {
+    const fakeBlob = new Blob(['png'], { type: 'image/png' })
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(fakeBlob) }))
+    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn().mockReturnValue('blob:fake'), revokeObjectURL: vi.fn() })
+
+    let downloadAttr = ''
+    const fakeA = Object.assign(document.createElement('a'), { click: vi.fn() })
+    Object.defineProperty(fakeA, 'download', {
+      set(v: string) { downloadAttr = v },
+      get() { return downloadAttr },
+    })
+
+    // el을 spy 설정 전에 생성 — mockReturnValueOnce가 내부 createElement('a')에 적용되도록
     const el = document.createElement('div')
-    const outcome = await captureShareCard(el)
-    expect(outcome).toBe('manual')
-    vi.doUnmock('html-to-image')
+    vi.spyOn(document, 'createElement').mockReturnValueOnce(fakeA)
+
+    expect(await captureShareCard(el)).toBe('downloaded')
+    expect(downloadAttr).toBe('foodquiz-result.png')
+  })
+
+  it('iOS + canShare(files) 지원: downloaded를 반환한다', async () => {
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0)', configurable: true, writable: true,
+    })
+    const fakeBlob = new Blob(['png'], { type: 'image/png' })
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(fakeBlob) }))
+    Object.defineProperty(navigator, 'canShare', {
+      value: vi.fn().mockReturnValue(true), configurable: true, writable: true,
+    })
+    Object.defineProperty(navigator, 'share', {
+      value: vi.fn().mockResolvedValue(undefined), configurable: true, writable: true,
+    })
+
+    expect(await captureShareCard(document.createElement('div'))).toBe('downloaded')
+    expect(navigator.share).toHaveBeenCalledWith(
+      expect.objectContaining({ files: expect.any(Array) }),
+    )
+  })
+
+  it('iOS + canShare(files) 미지원: manual을 반환한다', async () => {
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_0)', configurable: true, writable: true,
+    })
+    const fakeBlob = new Blob(['png'], { type: 'image/png' })
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(fakeBlob) }))
+    Object.defineProperty(navigator, 'canShare', {
+      value: vi.fn().mockReturnValue(false), configurable: true, writable: true,
+    })
+
+    expect(await captureShareCard(document.createElement('div'))).toBe('manual')
+  })
+
+  it('toBlob이 null을 반환하면 manual을 반환한다', async () => {
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(null) }))
+    expect(await captureShareCard(document.createElement('div'))).toBe('manual')
   })
 
   it('html-to-image import 실패 시 manual을 반환한다', async () => {
     vi.doMock('html-to-image', () => { throw new Error('load failed') })
-    const el = document.createElement('div')
-    const outcome = await captureShareCard(el)
-    expect(outcome).toBe('manual')
-    vi.doUnmock('html-to-image')
+    expect(await captureShareCard(document.createElement('div'))).toBe('manual')
   })
 })
 

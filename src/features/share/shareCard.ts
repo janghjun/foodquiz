@@ -79,11 +79,13 @@ export type CaptureOutcome = 'downloaded' | 'manual'
 const CAPTURE_OPTS = { pixelRatio: 2, cacheBust: true } as const
 
 /**
- * 카드 DOM을 PNG로 캡처해 다운로드합니다.
- * html-to-image toBlob(×2) → <a download> → revoke
- * 실패 시 수동 스크린샷 안내(manual)를 반환합니다.
+ * 카드 DOM을 PNG로 캡처해 저장합니다.
  *
- * toBlob을 두 번 호출하는 이유: html-to-image는 첫 번째 호출에서
+ * - iOS 15+: navigator.share({ files }) → 사진 앱으로 저장
+ * - iOS 14 이하: manual (화면 길게 눌러 저장 안내)
+ * - 데스크톱 / Android: createObjectURL → <a download> → revoke
+ *
+ * toBlob을 두 번 호출하는 이유: html-to-image 첫 번째 호출에서
  * 폰트·이모지 리소스를 캐시에 올리고, 두 번째 호출에서 완전한 이미지를 생성합니다.
  */
 export async function captureShareCard(
@@ -95,12 +97,27 @@ export async function captureShareCard(
     await toBlob(cardEl, CAPTURE_OPTS)           // 캐시 워밍
     const blob = await toBlob(cardEl, CAPTURE_OPTS)
     if (!blob) return 'manual'
+
+    const file = new File([blob], 'foodquiz-result.png', { type: 'image/png' })
+
+    // iOS: <a download> 미지원 → Web Share API({ files }) 로 사진 앱에 저장
+    if (/iP(hone|ad|od)/i.test(navigator.userAgent ?? '')) {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] })
+        return 'downloaded'
+      }
+      return 'manual'
+    }
+
+    // 데스크톱 / Android
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = '먹퀴즈-결과카드.png'
+    a.download = 'foodquiz-result.png'
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 100) // click 후 비동기 해제
     return 'downloaded'
   } catch {
     return 'manual'
