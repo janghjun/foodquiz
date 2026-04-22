@@ -76,31 +76,29 @@ export async function shareResult(data: ShareCardData): Promise<ShareOutcome> {
 
 export type CaptureOutcome = 'downloaded' | 'manual'
 
+const CAPTURE_OPTS = { pixelRatio: 2, cacheBust: true } as const
+
 /**
- * 카드 DOM 요소를 이미지로 캡처해 다운로드합니다.
- * html2canvas(scale=2) → blob → <a download> → revoke
+ * 카드 DOM을 PNG로 캡처해 다운로드합니다.
+ * html-to-image toBlob(×2) → <a download> → revoke
  * 실패 시 수동 스크린샷 안내(manual)를 반환합니다.
+ *
+ * toBlob을 두 번 호출하는 이유: html-to-image는 첫 번째 호출에서
+ * 폰트·이모지 리소스를 캐시에 올리고, 두 번째 호출에서 완전한 이미지를 생성합니다.
  */
 export async function captureShareCard(
   cardEl: HTMLElement | null,
 ): Promise<CaptureOutcome> {
   if (!cardEl) return 'manual'
   try {
-    const html2canvas = (await import('html2canvas')).default
-    const canvas = await html2canvas(cardEl, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: null,
-      logging: false,
-    })
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/png'),
-    )
+    const { toBlob } = await import('html-to-image')
+    await toBlob(cardEl, CAPTURE_OPTS)           // 캐시 워밍
+    const blob = await toBlob(cardEl, CAPTURE_OPTS)
     if (!blob) return 'manual'
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `먹퀴즈-결과카드.png`
+    a.download = '먹퀴즈-결과카드.png'
     a.click()
     URL.revokeObjectURL(url)
     return 'downloaded'
@@ -112,13 +110,33 @@ export async function captureShareCard(
 // ── 스토리 카드 공유 ─────────────────────────────────────────────
 
 /**
- * 스토리 카드를 공유합니다.
- * 현재: shareResult()와 동일하게 텍스트를 Web Share API → 클립보드 순서로 공유.
- * TODO: html2canvas(cardEl) → File blob → navigator.share({ files: [blob] })
+ * 스토리 카드를 이미지 파일로 공유합니다.
+ *
+ * 우선순위:
+ * 1. cardEl 있고 navigator.share({ files }) 지원 → PNG 파일 공유
+ * 2. navigator.share 있고 files 미지원 → 텍스트 공유
+ * 3. clipboard → copied
+ * 4. 모두 불가 → unavailable
  */
 export async function shareStoryCard(
   data: ShareCardData,
-  _cardEl: HTMLElement | null = null,
+  cardEl: HTMLElement | null = null,
 ): Promise<ShareOutcome> {
+  if (cardEl && typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      const { toBlob } = await import('html-to-image')
+      await toBlob(cardEl, CAPTURE_OPTS)         // 캐시 워밍
+      const blob = await toBlob(cardEl, CAPTURE_OPTS)
+      if (blob) {
+        const file = new File([blob], '먹퀴즈-결과카드.png', { type: 'image/png' })
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file] })
+          return 'shared'
+        }
+      }
+    } catch {
+      // 이미지 캡처 또는 파일 공유 실패 → 텍스트 공유로 fallback
+    }
+  }
   return shareResult(data)
 }

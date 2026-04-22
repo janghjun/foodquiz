@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { buildShareText, shareResult, shareStoryCard } from './shareCard'
+import { buildShareText, shareResult, shareStoryCard, captureShareCard } from './shareCard'
 import type { ShareCardData } from './shareCard'
 
 // ── 픽스처 ───────────────────────────────────────────────────────
@@ -147,6 +147,54 @@ describe('shareResult', () => {
     })
     const result = await shareResult(makeData())
     expect(result).toBe('unavailable')
+  })
+})
+
+// ── captureShareCard ─────────────────────────────────────────────
+
+describe('captureShareCard', () => {
+  it('cardEl이 null이면 manual을 반환한다', async () => {
+    expect(await captureShareCard(null)).toBe('manual')
+  })
+
+  it('html-to-image toBlob 성공 시 downloaded를 반환한다', async () => {
+    const fakeBlob = new Blob(['png'], { type: 'image/png' })
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(fakeBlob) }))
+
+    // URL.createObjectURL / revokeObjectURL stub
+    const createObjURL = vi.fn().mockReturnValue('blob:fake')
+    const revokeObjURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL: createObjURL, revokeObjectURL: revokeObjURL })
+
+    // <a>.click() stub
+    const clickSpy = vi.fn()
+    vi.spyOn(document, 'createElement').mockReturnValueOnce(
+      Object.assign(document.createElement('a'), { click: clickSpy }),
+    )
+
+    const el = document.createElement('div')
+    const outcome = await captureShareCard(el)
+    expect(outcome).toBe('downloaded')
+
+    vi.doUnmock('html-to-image')
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+  })
+
+  it('html-to-image toBlob이 null을 반환하면 manual을 반환한다', async () => {
+    vi.doMock('html-to-image', () => ({ toBlob: vi.fn().mockResolvedValue(null) }))
+    const el = document.createElement('div')
+    const outcome = await captureShareCard(el)
+    expect(outcome).toBe('manual')
+    vi.doUnmock('html-to-image')
+  })
+
+  it('html-to-image import 실패 시 manual을 반환한다', async () => {
+    vi.doMock('html-to-image', () => { throw new Error('load failed') })
+    const el = document.createElement('div')
+    const outcome = await captureShareCard(el)
+    expect(outcome).toBe('manual')
+    vi.doUnmock('html-to-image')
   })
 })
 
